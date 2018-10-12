@@ -1,0 +1,47 @@
+extren void LED()
+{
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+	GPIOPinTypeGPIOOutput(GPIO_PORTA_BASE,GPIO_PIN_4);
+	SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+	GPIOPinTypeGPIOOutput(GPIO_PORTD_BASE,GPIO_PIN_6);
+}
+extern void LEDIntHandler()
+{
+	if(screen11==1)screen11();
+	if(screen12==1)screen12();
+	if(screen13==1)screen13();
+	if(screen21==1)screen21();
+	if(screen22==1)screen22();
+	if(screen23==1)screen23();
+	if(screen31==1)screen31();
+	if(screen32==1)screen32();
+	if(screen33==1)screen33();
+	if(flag==1)
+	{
+	if(D4_Counter)
+	{
+		D4_Counter--;
+		GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_6,1<<6);
+	}
+	else
+	{
+		GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_6,0<<6);
+		D4_Counter=2;
+	}
+	if(D3_Counter)
+	{
+		D3_Counter--;
+		GPIOPinWrite(GPIO_PORTA_BASE,GPIO_PIN_4,1<<4);
+	}
+	else
+	{
+		GPIOPinWrite(GPIO_PORTA_BASE,GPIO_PIN_4,0<<4);
+		D3_Counter=12;
+	}
+	}
+	if(flag==0)
+	{
+		GPIOPinWrite(GPIO_PORTD_BASE,GPIO_PIN_6,1<<6);
+		GPIOPinWrite(GPIO_PORTA_BASE,GPIO_PIN_4,1<<4);
+	}
+}

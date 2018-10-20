@@ -1,56 +1,59 @@
-#include <stdint.h>
 #include <stdbool.h>
-#include <math.h>
-#include <complex.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "driverlib/fpu.h"
+#include "driverlib/gpio.h"
+#include "driverlib/pin_map.h"
 #include "driverlib/sysctl.h"
-#include "driverlib/rom.h"
+#include "driverlib/systick.h"
+#include "driverlib/ssi.h"
+#include "ui/ui.c"
+#include "ui/font.h"
+#include "ui/uc1701.c"
+#include "ui/hw_uc1701.h"
+#include "system/str_convert.c"
 
-#define TARGET_IS_TM4C123_RB1
-
-#ifndef M_PI
-#define M_PI                    3.14159265358979323846
-#endif
-
-#define SERIES_LENGTH 512  //128*4
-#define SAMPLE_LENGTH 128
-#define TN 10
-
-extern float GetUrms(float *Ui);
-extern float GetIrms(float *Ii);
-extern float GetImbalance(float *Uabc);
-
-float gSeriesData[SERIES_LENGTH*TN],gADCSeriesData[SAMPLE_LENGTH*TN];
-
-int32_t i32DataCount = 0,iADCCount=0;
-
-int main(void)
+//新年快乐
+char HZ[]={
+ 0x20,0x24,0x2C,0x35,0xE6,0x34,0x2C,0x24,0x00,0xFC,0x24,0x24,0xE2,0x22,0x22,0x00,
+ 0x21,0x11,0x4D,0x81,0x7F,0x05,0x59,0x21,0x18,0x07,0x00,0x00,0xFF,0x00,0x00,0x00,
+ 0x40,0x20,0x10,0x0C,0xE3,0x22,0x22,0x22,0xFE,0x22,0x22,0x22,0x22,0x02,0x00,0x00,
+ 0x04,0x04,0x04,0x04,0x07,0x04,0x04,0x04,0xFF,0x04,0x04,0x04,0x04,0x04,0x04,0x00,
+ 0x70,0x00,0xFF,0x08,0xB0,0x88,0x88,0x88,0xFF,0x88,0x88,0x88,0xF8,0x80,0x80,0x00,
+ 0x00,0x00,0xFF,0x00,0x80,0x40,0x30,0x0E,0x01,0x06,0x08,0x30,0x60,0xC0,0x40,0x00,
+ 0x00,0x00,0x40,0xFC,0x44,0x44,0x44,0x46,0xFA,0x42,0x43,0x43,0x42,0x40,0x00,0x00,
+ 0x00,0x20,0x18,0x0C,0x07,0x12,0x20,0x40,0x3F,0x00,0x00,0x02,0x0C,0x38,0x10,0x00
+ };
+int
+main(void)
 {
-	float fRadians,Uabc[3]={215,200,220};
-	float Imbalance,Urms;
+	
+    SysCtlClockSet(SYSCTL_SYSDIV_1 | SYSCTL_USE_OSC | SYSCTL_OSC_MAIN |
+                   SYSCTL_XTAL_16MHZ);
+	
+    UC1701Init(60000);
+    int a[10]={20,17,18,29,12,23,35,54,43,27};
+    uiDisplayInit();
+    uiDisplayClear();
+    uiGRAMClear();
+    while(1)
+    {
+        uiGRAMClear();
+        int i;
+        for(i=0;i<10;i++)
+        {
+        	uiDisplayDrawFrame(10*i,60-a[i],10*i+2,60);
+        }
+        uiDisplayerRefresh();
 
-	ROM_FPULazyStackingEnable();
-	ROM_FPUEnable();
+        SysCtlDelay(SysCtlClockGet()/5);//延时200ms
+    }
 
-	ROM_SysCtlClockSet(SYSCTL_SYSDIV_4 | SYSCTL_USE_PLL | SYSCTL_XTAL_16MHZ | SYSCTL_OSC_MAIN);
+    uiDisplayerRefresh();
+    uiDisplayerRefresh();
 
-	fRadians = ((2 * M_PI) / SERIES_LENGTH);
+    SysCtlDelay(1000000);
+	
 
-	while(i32DataCount < SERIES_LENGTH*TN)
-	{
-		gSeriesData[i32DataCount] = sinf(fRadians * i32DataCount);//128*4  10T
-		i32DataCount++;
-	}
-	while(iADCCount < SAMPLE_LENGTH*TN)
-	{
-		gADCSeriesData[iADCCount] = gSeriesData[iADCCount*4];
-		iADCCount++;
-	}
-	Imbalance=GetImbalance(Uabc);
-	Urms=GetUrms(gADCSeriesData);
-	while(1)
-	{
-	}
 }
